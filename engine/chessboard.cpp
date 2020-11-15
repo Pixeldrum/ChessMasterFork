@@ -76,17 +76,19 @@ void ChessBoard::print(void) const
 	printf("   ___ ___ ___ ___ ___ ___ ___ ___ \n  ");
 
 #pragma omp parallel private(repr, figure, unmoved, passant, row, col)
-	for (row = 7; row >= 0; row--)
 	{
-		for (col = 0; col < 8; col++)
+		for (row = 7; row >= 0; row--)
 		{
-			figure = this->square[row * 8 + col];
-			repr = getASCIIrepr(figure);
-			unmoved = (IS_MOVED(figure) || (figure == EMPTY)) ? ' ' : '.';
-			passant = IS_PASSANT(figure) ? '`' : ' ';
-			printf("|%c%c%c", unmoved, repr, passant);
+			for (col = 0; col < 8; col++)
+			{
+				figure = this->square[row * 8 + col];
+				repr = getASCIIrepr(figure);
+				unmoved = (IS_MOVED(figure) || (figure == EMPTY)) ? ' ' : '.';
+				passant = IS_PASSANT(figure) ? '`' : ' ';
+				printf("|%c%c%c", unmoved, repr, passant);
+			}
+			printf("|\n%d |___|___|___|___|___|___|___|___|\n  ", row + 1);
 		}
-		printf("|\n%d |___|___|___|___|___|___|___|___|\n  ", row + 1);
 	}
 	printf("  A   B   C   D   E   F   G   H  \n\n");
 }
