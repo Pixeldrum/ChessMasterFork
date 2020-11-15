@@ -5,11 +5,14 @@
 #include "chessboard.h"
 #include "humanplayer.h"
 #include "aiplayer.h"
-
+#include <time.h>
+#include <omp.h>
 using namespace std;
 
 int main(void) {
-
+	double cpu_time_used;
+	clock_t start, end;
+	   
 	ChessBoard board;
 	list<Move> regulars, nulls;
 	int turn = WHITE;
@@ -24,6 +27,7 @@ int main(void) {
 	board.initDefaultSetup();
 
 	for(;;) {
+	 start = clock();
 		// show board
 		board.print();
 
@@ -51,6 +55,13 @@ int main(void) {
 
 		// opponents turn
 		turn = TOGGLE_COLOR(turn);
+		
+		
+		end = clock();
+	
+	cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+	  printf("CPU TIME USED: %f\n", cpu_time_used); 
+	   
 	}
 
 	ChessPlayer::Status status = board.getPlayerStatus(turn);
@@ -64,4 +75,5 @@ int main(void) {
 			printf("Stalemate\n");
 			break;
 	}
+	
 }
