@@ -159,6 +159,74 @@ void ChessBoard::initDefaultSetup(void)
 
 void ChessBoard::getMoves(int color, list<Move> & moves, list<Move> & captures, list<Move> & null_moves)
 {
+	int pos, figure, temp;
+	bool forcheck = false;
+
+	#pragma omp parallel for private (figure,pos,temp)
+	//{
+	for(pos = 0; pos < 64; pos++)
+	{
+		if((figure = this->square[pos]) != EMPTY)
+		{
+			if(IS_BLACK(figure) == color)
+			{
+
+			temp = FIGURE(figure);
+			if(temp== PAWN){
+			getPawnMoves(figure, pos, moves, captures, null_moves);
+			
+			} else if(temp == ROOK){
+			getRookMoves(figure, pos, moves, captures);
+			
+			
+			}else if(temp == KNIGHT){
+			getKnightMoves(figure, pos, moves, captures);
+				
+			}else if(temp == BISHOP ){
+			getBishopMoves(figure, pos, moves, captures);
+				
+			}else if(temp == QUEEN){
+			getQueenMoves(figure, pos, moves, captures);
+				
+			}
+			else if(temp == KING ){
+			getKingMoves(figure, pos, moves, captures);
+				
+			} 
+			
+				//switch(FIGURE(figure))
+				//{
+				//	case PAWN:
+				//		getPawnMoves(figure, pos, moves, captures, null_moves);
+				//		break;
+				//	case ROOK:
+				//		getRookMoves(figure, pos, moves, captures);
+				//		break;
+				//	case KNIGHT:
+				//		getKnightMoves(figure, pos, moves, captures);
+				//		break;
+				//	case BISHOP:
+				//		getBishopMoves(figure, pos, moves, captures);
+				//		break;
+				//	case QUEEN:
+				//		getQueenMoves(figure, pos, moves, captures);
+				//		break;
+				//	case KING:
+				//		getKingMoves(figure, pos, moves, captures);
+				//		break;
+				//	default:
+				//		break;
+				//}
+			}
+			}
+		}
+		
+	///}
+
+}
+
+/*void ChessBoard::getMoves(int color, list<Move> & moves, list<Move> & captures, list<Move> & null_moves)
+{
 	int pos, figure;
 	
 	for(pos = 0; pos < 64; pos++)
@@ -194,7 +262,7 @@ void ChessBoard::getMoves(int color, list<Move> & moves, list<Move> & captures, 
 		}
 	}
 }
-
+*/
 void ChessBoard::getPawnMoves(int figure, int pos, list<Move> & moves, list<Move> & captures, list<Move>  & null_moves) const
 {
 	Move new_move;
@@ -974,13 +1042,19 @@ bool ChessBoard::isVulnerable(int pos, int figure) const
 	// Determine row and column
 	row = pos / 8;
 	col = pos % 8;
+	
 	bool check = false;
 	bool forcheck = false;
+	omp_set_num_threads(9);
 #pragma omp parallel firstprivate (figure, col, row, pos, forcheck), private(target_pos,target_figure, i,j,end) 
 {
+
 	// 1. Look for Rooks, Queens and Kings above
+	if(omp_get_thread_num()==0 && check == false){
 	for(target_pos = pos + 8; target_pos < 64 && forcheck!=true; target_pos += 8)
 	{
+	for (int i=0; i < 1000; i++)
+
 		if((target_figure = this->square[target_pos]) != EMPTY)
 		{
 			if(IS_BLACK(target_figure) != IS_BLACK(figure))
@@ -998,10 +1072,14 @@ bool ChessBoard::isVulnerable(int pos, int figure) const
 			forcheck = true;
 		}
 	}
+	}
 forcheck = false;
 	// 2. Look for Rooks, Queens and Kings below
+	if(omp_get_thread_num()==1 && check == false){
+	
 	for(target_pos = pos - 8; target_pos >= 0 && forcheck!=true; target_pos -= 8)
 	{
+
 		if((target_figure = this->square[target_pos]) != EMPTY)
 		{
 			if(IS_BLACK(target_figure) != IS_BLACK(figure))
@@ -1019,10 +1097,14 @@ forcheck = false;
 			forcheck=true;
 		}
 	}
+	}
 forcheck = false;
 	// 3. Look for Rooks, Queens and Kings left
+	if(omp_get_thread_num()==2 && check == false){
+	
 	for(target_pos = pos - 1, end = pos - (pos % 8); target_pos >= end && forcheck!=true; target_pos--)
 	{
+
 		if((target_figure = this->square[target_pos]) != EMPTY)
 		{
 			if(IS_BLACK(figure) != IS_BLACK(target_figure))
@@ -1040,10 +1122,14 @@ forcheck = false;
 			forcheck=true;
 		}
 	}
+	}
 forcheck = false;
+if(omp_get_thread_num()==3 && check == false){
+
 	// 4. Look for Rooks, Queens and Kings right
 	for(target_pos = pos + 1, end = pos + (8 - pos % 8); target_pos < end && forcheck!=true; target_pos++)
 	{
+
 		if((target_figure = this->square[target_pos]) != EMPTY)
 		{
 			if(IS_BLACK(figure) != IS_BLACK(target_figure))
@@ -1061,10 +1147,14 @@ forcheck = false;
 			forcheck=true;
 		}
 	}
+	}
 forcheck = false;
+if(omp_get_thread_num()==4 && check == false){
+
 	// 5. Look for Bishops, Queens, Kings and Pawns north-east
 	for(i = row + 1, j = col + 1; (i < 8) && (j < 8) && forcheck!=true; i++, j++)
 	{
+		for (int i=0; i < 1000; i++)
 		#pragma omp critical
 		{
 		target_pos = i * 8 + j;
@@ -1088,10 +1178,15 @@ forcheck = false;
 			forcheck=true;
 		}
 	}
+	}
 	forcheck = false;
+	if(omp_get_thread_num()==5 && check == false){
+	
 	// 6. Look for Bishops, Queens, Kings and Pawns south-east
 	for(i = row - 1, j = col + 1; (i >= 0) && (j < 8) && forcheck!=true; i--, j++)
 	{	
+		for (int i=0; i < 1000; i++)
+
 	#pragma omp critical
 	{
 		target_pos = i * 8 + j;
@@ -1115,10 +1210,15 @@ forcheck = false;
 			forcheck=true;
 		}
 	}
+	}
 forcheck = false;
+if(omp_get_thread_num()==6 && check == false){
+
 	// 7. Look for Bishops, Queens, Kings and Pawns south-west
 	for(i = row - 1, j = col - 1; (i >= 0) && (j >= 0) && forcheck!=true; i--, j--)
 	{
+		for (int i=0; i < 1000; i++)
+
 	#pragma omp critical
 	{
 		target_pos = i * 8 + j;
@@ -1142,10 +1242,14 @@ forcheck = false;
 			forcheck=true;
 		}
 	}
+	}
 forcheck = false;
+if(omp_get_thread_num()==7 && check == false ){
+
 	// 8. Look for Bishops, Queens, Kings and Pawns north-west
 	for(i = row + 1, j = col - 1; (i < 8) && (j >= 0)&&forcheck!=true; i++, j--)
 	{
+
 	#pragma omp critical
 	{
 		target_pos = i * 8 + j;
@@ -1165,11 +1269,14 @@ forcheck = false;
 				if((FIGURE(target_figure) == BISHOP) || (FIGURE(target_figure) == QUEEN))
 					check= true;
 			}
+			
 
 			forcheck=true;
 		}
 	}
-	
+	}
+if(omp_get_thread_num()==8 && check == false ){
+
 	// 9. Look for Knights in upper positions
 	if(row < 6)
 	{
@@ -1299,6 +1406,7 @@ forcheck = false;
 	}	
 
 	
+}
 }
 if(check==true){
 return check;
